@@ -1,0 +1,129 @@
+---
+title: "Class 9 continued"
+author: "A16125573"
+format: html
+---
+
+# 4. Comparative structure analysis of Adenylate Kinase
+
+
+```{r}
+# Install packages in the R console NOT your Rmd/Quarto file
+
+#install.packages("bio3d")
+#install.packages("devtools")
+#install.packages("BiocManager")
+
+#BiocManager::install("msa")
+#devtools::install_bitbucket("Grantlab/bio3d-view")
+```
+> Q10. Which of the packages above is found only on BioConductor and not CRAN? 
+
+msa
+
+> Q11. Which of the above packages is not found on BioConductor or CRAN?: 
+
+bio3d-view
+
+> Q12. True or False? Functions from the devtools package can be used to install packages from GitHub and BitBucket?
+
+True. 
+
+
+We will then use this to find all ADK strucutres in the PDB. 
+
+```{r}
+library(bio3d)
+aa <- get.seq("1ake_A") #1
+aa
+```
+
+> Q13. How many amino acids are in this sequence, i.e. how long is this sequence?
+
+214 amino acids
+
+
+We can now run BLAST with this sequence 
+```{r}
+# Blast or hmmer search 
+#b <- blast.pdb(aa) #2
+
+```
+
+
+```{r}
+# Plot a summary of search results
+#hits <- plot(b) #3
+```
+
+The black dots are the ones we want to analyze.
+
+Let's see what is in the `hits` object. 
+
+```{r}
+# List out some 'top hits'
+#hits$pdb.id
+
+hits <- NULL
+hits$pdb.id <- c('1AKE_A','6S36_A','6RZE_A','3HPR_A','1E4V_A','5EJE_A','1E4Y_A','3X2S_A','6HAP_A','6HAM_A','4K46_A','3GMT_A','4PZL_A')
+```
+
+
+```{r}
+# Download related PDB files
+files <- get.pdb(hits$pdb.id, path="pdbs", split=TRUE, gzip=TRUE)
+#split: split it by chain
+```
+
+Now I'm going to align and superpose these structures 
+
+```{r}
+# Align releated PDBs
+pdbs <- pdbaln(files, fit = TRUE, exefile="msa")
+```
+
+
+```{r}
+#pdbs
+```
+
+## Principal component analysis
+
+Now we have our aligned and superposed structures, we can perform analysis on them. Let's do PCA
+
+```{r}
+# Perform PCA
+pc.xray <- pca(pdbs)
+plot(pc.xray)
+```
+
+
+
+We can cluster the structures by RMSD (root mean squared distance), which gives the sum of all distances 
+
+```{r}
+# Calculate RMSD
+rd <- rmsd(pdbs)
+
+# Structure-based clustering
+hc.rd <- hclust(dist(rd))
+grps.rd <- cutree(hc.rd, k=3) #they can be dissected into 3 main groups 
+
+plot(pc.xray, 1:2, col="grey50", bg=grps.rd, pch=21, cex=1)
+```
+
+# 5. Optional further visualization
+
+Make a movie / trajectory of the major differences of ADK
+
+```{r}
+# Visualize first principal component
+pc1 <- mktrj(pc.xray, pc=1, file="pc_1.pdb")
+```
+
+
+
+
+
+
+
