@@ -1,2 +1,3 @@
 # bimm143sp23_dc
-bioinformatics 
+
+#This repo is for my UCSD bioinformatics class.
