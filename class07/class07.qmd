@@ -1,0 +1,220 @@
+---
+title: "Class 7: Clustering and PCA"
+author: "A16125573"
+format: pdf
+---
+
+# Clustering
+
+First let's make up dome data to cluster so we can get a feel for these methods and how to work with them.
+
+We can use the `rnorm()` function to get random numbers from a normal distribution around a given `mean`
+
+```{r}
+hist(rnorm(5000, mean=3))
+# mean and sd has a default value, so should worry most about the one that doesn't (n)
+
+```
+
+Let's get 30 points with a mean of 3.
+
+```{r}
+c(rnorm(30, mean=3), rnorm(30, mean=-3))
+
+```
+
+```{r}
+# cbind()
+rev(c(rnorm(30, mean=3), rnorm(30, mean=-3))) # this reverses 
+```
+
+```{r}
+tmp <- c(rnorm(30, mean=3), rnorm(30, mean=-3))
+tmp
+```
+
+```{r}
+x <- cbind(x=tmp, y=rev(tmp))
+plot(x)
+```
+
+## K-means clustering.
+
+Very popular clustering method, especially for big datasets, that we can use with the `kmeans()` function in base R.
+
+```{r}
+# kmeans() #needs 2 things/inputs
+
+km <- kmeans(x, centers=2)
+# centers = # of clusters 
+
+km
+# we know the answer should be 30, 30
+# cluster means = the center points of the clusters 
+# clustering vector = shows which cluster each point belongs to 
+# available components = ?
+```
+
+```{r}
+km$size
+```
+
+```{r}
+# example data
+tmp <- c(rnorm(30, 3), rnorm(30, -3))
+x <- data.frame(x=tmp, y=rev(tmp))
+
+#plot(x)
+
+km <- kmeans(x, centers=2, nstart=20)
+km
+```
+
+> Q. How many points are in each cluster?
+
+```{r}
+km$size
+```
+
+
+> Q. How do we get to cluster membership/assignment?
+
+```{r}
+km$cluster
+```
+
+> Q. How many cluster centers? 
+
+```{r}
+km$centers
+```
+
+> Q. Plot x colored by the kmeans cluster assignment and add cluster centers as blue points
+
+```{r}
+# mycols <- km$cluster
+plot(x, col=km$cluster)
+points(km$centers, col="blue", pch=15, cex=3)
+```
+
+> Q Let's cluster into 3 groups or same `x` data and make a plot. 
+
+```{r}
+km3 <- kmeans(x, centers=3)
+plot(x, col=km3$cluster)
+
+
+```
+
+
+# Hierarchical Clustering 
+
+We can use the `hclust()` function for Hierarchical Clustering. 
+Unlike `kmeans()`, where we could just pass in our data as input, we need to give `hclust()` a "distance matrix"
+
+
+
+We will ust the `dist()` function to start with. 
+
+```{r}
+d <- dist(x) # a distance matrix
+hc <- hclust(d)
+hc
+```
+
+```{r}
+plot(hc)
+```
+
+I can now cut my tree with the `cutree()` to yield a cluster membership vector.
+
+```{r}
+grps <- cutree(hc, h=8) 
+grps
+```
+
+You can also tell `cutree()` to cut where it yields "k" groups. 
+
+```{r}
+cutree(hc, k=2) #cut it into 2 groups
+```
+
+
+```{r}
+plot(x, col=grps)
+```
+
+
+# Principal Component Analysis (PCA)
+
+# PCA of UK food 
+
+```{r}
+url <- "https://tinyurl.com/UK-foods"
+x <- read.csv(url, row.names=1)
+```
+
+```{r}
+# Complete the following code to find out how many rows and columns are in x?
+nrow(x)
+
+ncol(x)
+
+dim(x)
+```
+
+```{r}
+# Preview the first 6 rows
+head(x)
+```
+
+```{r}
+#rownames(x) <- x[,1]
+#x <- x[,-1]
+#head(x)
+dim(x)
+# I don't prefer this method because each time you run it, you would drop a column
+```
+
+
+> Q3: Changing what optional argument in the above barplot() function results in the following plot?
+
+```{r}
+barplot(as.matrix(x), beside=T, col=rainbow(nrow(x)))
+# changing beside to F will generate the other bar plot
+```
+
+> Q5: Generating all pairwise plots may help somewhat. Can you make sense of the following code and resulting figure? What does it mean if a given point lies on the diagonal for a given plot?
+
+```{r}
+pairs(x, col=rainbow(10), pch=16)
+
+# the figure shows 
+# each colored dot is a food category
+# if a points lies on the diagonal, it means that the the x and y axis countries comsumed the same amount for that food category 
+# points above the diagonal means that the y axis country has consumed more 
+
+```
+
+The main PCA function in base R is called `prcomp()` it expects the trabspose of our data.
+
+```{r}
+# prcomp 
+pca <- prcomp( t(x) )
+summary(pca)
+```
+```{r}
+attributes(pca) # we want x
+
+pca$x # shows where each country lies on the new axis
+```
+```{r}
+# Plot PC1 vs PC2
+
+plot(pca$x[,1], pca$x[,2], xlab="PC1", ylab="PC2", xlim=c(-270,500))
+text(pca$x[,1], pca$x[,2], colnames(x), col=c("darkorange", "red", "blue", "darkgreen"))
+
+
+
+```
+
